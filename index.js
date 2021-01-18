@@ -1,3 +1,22 @@
+/*
+ * @Descripttion: your project
+ * @version: 1.0
+ * @Author: power_840
+ * @Date: 2021-01-18 18:32:19
+ * @LastEditors: power_840
+ * @LastEditTime: 2021-01-18 19:42:15
+ */
+
+class Transaction {
+  constructor(wrappers) {
+    this.wrappers = wrappers;
+  }
+  perform(anyMethod) {
+    this.wrappers.forEach((wrapper) => wrapper.initialize());
+    anyMethod.call();
+    this.wrappers.forEach((wrapper) => wrapper.close());
+  }
+}
 let batchingStrategy = {
   isBatchingUpdates: false,
   dirtyComponents: [],
@@ -60,18 +79,29 @@ class Component {
   }
 }
 
+let transaction = new Transaction([
+  {
+    initialize() {
+      // 开启批量更新模式
+      batchingStrategy.isBatchingUpdates = true;
+    },
+    close() {
+      // 关闭批量更新模式
+      batchingStrategy.isBatchingUpdates = false;
+      // 开始批量更新, 所有的脏组件根据自己的state和props进行更新
+      batchingStrategy.bacthedUpdates();
+    },
+  },
+]);
+
 window.trigger = function (event, methodName, ...other) {
-  // 开启批量更新模式
-  batchingStrategy.isBatchingUpdates = true;
-  event.target.component[methodName].call(
-    event.target.component,
-    event,
-    ...other
+  transaction.perform(
+    event.target.component[methodName].bind(
+      event.target.component,
+      event,
+      ...other
+    )
   );
-  // 关闭批量更新模式
-  batchingStrategy.isBatchingUpdates = false;
-  // 开始批量更新, 所有的脏组件根据自己的state和props进行更新
-  batchingStrategy.bacthedUpdates();
 };
 
 class Counter extends Component {
