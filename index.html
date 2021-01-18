@@ -10,7 +10,9 @@
     <script src="./index.js"></script>
     <script>
       const counterApp = document.getElementById('counter-app');
-      counterApp.appendChild(new Counter().render());
+      // counterApp.appendChild(new Counter().render());
+      const app = new Counter({ number: '123' });
+      app.mount(counterApp);
     </script>
   </body>
 </html>
